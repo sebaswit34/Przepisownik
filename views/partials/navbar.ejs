@@ -1,0 +1,48 @@
+<nav class="main-nav">
+    <div class="container">
+        <a href="/" class="logo">Przepisy Kulinarne</a>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="nav-menu">
+            <div class="nav-main">
+                <ul class="nav-links">
+                    <li><a href="/" class="<%= currentPath === '/' ? 'active' : '' %>">Strona Główna</a></li>
+                    <li><a href="/przepisy" class="<%= currentPath.startsWith('/przepisy') ? 'active' : '' %>">Przepisy</a></li>
+                    <% if (user) { %>
+                        <li><a href="/przepisy/nowy" class="<%= currentPath === '/przepisy/nowy' ? 'active' : '' %>">Dodaj Przepis</a></li>
+                    <% } %>
+                </ul>
+            </div>
+            <% if (user) { %>
+                <div class="nav-user">
+                    <ul class="nav-links">
+                        <li><a href="/users/profil" class="<%= currentPath === '/users/profil' ? 'active' : '' %>">Mój Profil</a></li>
+                        <li>
+                            <form action="/users/logout" method="POST" style="display: inline;">
+                                <button type="submit" class="btn btn-danger">Wyloguj się</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            <% } else { %>
+                <div class="nav-user">
+                    <ul class="nav-links">
+                        <li><a href="/users/login" class="btn btn-primary" style="color: white !important;">Zaloguj się</a></li>
+                        <li><a href="/users/rejestracja" class="btn btn-outline">Zarejestruj się</a></li>
+                    </ul>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</nav>
+
+<style>
+.btn-primary {
+    color: white !important;
+}
+
+.btn-primary:hover {
+    color: white !important;
+}
+</style> 

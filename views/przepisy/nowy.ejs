@@ -1,0 +1,194 @@
+<div class="form-container">
+    <div class="section-header">
+        <h1><%= typeof przepis != 'undefined' ? 'Edytuj Przepis' : 'Dodaj Nowy Przepis' %></h1>
+        <p>Wypełnij poniższy formularz, aby <%= typeof przepis != 'undefined' ? 'zaktualizować' : 'dodać' %> przepis do naszej kolekcji.</p>
+    </div>
+
+    <form action="<%= typeof przepis != 'undefined' ? `/przepisy/${przepis._id}?_method=PUT` : '/przepisy' %>" method="POST" enctype="multipart/form-data" class="recipe-form">
+        <div class="form-group">
+            <label for="nazwa">Nazwa przepisu *</label>
+            <input type="text" id="nazwa" name="nazwa" class="form-control" required 
+                value="<%= typeof przepis != 'undefined' ? przepis.nazwa : '' %>"
+                placeholder="np. Spaghetti Bolognese">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="czasPrzygotowania">Czas przygotowania *</label>
+                <select id="czasPrzygotowania" name="czasPrzygotowania" class="form-select" required>
+                    <option value="">Wybierz czas przygotowania</option>
+                    <% for(let i = 5; i <= 60; i += 5) { %>
+                        <option value="<%= i %>" <%= typeof przepis != 'undefined' && przepis.czasPrzygotowania == i ? 'selected' : '' %>>
+                            <%= i %> minut
+                        </option>
+                    <% } %>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="poziomTrudnosci">Poziom trudności *</label>
+                <select id="poziomTrudnosci" name="poziomTrudnosci" class="form-select" required>
+                    <option value="">Wybierz poziom trudności</option>
+                    <option value="Łatwy" <%= typeof przepis != 'undefined' && przepis.poziomTrudnosci === 'Łatwy' ? 'selected' : '' %>>Łatwy</option>
+                    <option value="Średni" <%= typeof przepis != 'undefined' && przepis.poziomTrudnosci === 'Średni' ? 'selected' : '' %>>Średni</option>
+                    <option value="Trudny" <%= typeof przepis != 'undefined' && przepis.poziomTrudnosci === 'Trudny' ? 'selected' : '' %>>Trudny</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="skladniki">Składniki *</label>
+            <div id="skladniki-container">
+                <% if(typeof przepis != 'undefined' && przepis.skladniki && przepis.skladniki.length > 0) { %>
+                    <% przepis.skladniki.forEach(function(skladnik, index) { %>
+                        <div class="skladnik-input">
+                            <div class="input-group">
+                                <input type="text" name="skladniki[<%= index %>][nazwa]" class="form-control" value="<%= skladnik.nazwa %>" placeholder="Nazwa składnika" required>
+                                <input type="text" name="skladniki[<%= index %>][ilosc]" class="form-control" value="<%= skladnik.ilosc %>" placeholder="Ilość" required>
+                                <select name="skladniki[<%= index %>][jednostka]" class="form-select" required>
+                                    <option value="">Jednostka</option>
+                                    <option value="sztuka" <%= skladnik.jednostka === 'sztuka' ? 'selected' : '' %>>sztuka</option>
+                                    <option value="g" <%= skladnik.jednostka === 'g' ? 'selected' : '' %>>g</option>
+                                    <option value="łyżka" <%= skladnik.jednostka === 'łyżka' ? 'selected' : '' %>>łyżka</option>
+                                    <option value="ml" <%= skladnik.jednostka === 'ml' ? 'selected' : '' %>>ml</option>
+                                </select>
+                                <button type="button" class="btn btn-danger remove-skladnik">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } %>
+                <div class="skladnik-input">
+                    <div class="input-group">
+                        <input type="text" name="skladniki[0][nazwa]" class="form-control" placeholder="Nazwa składnika" required>
+                        <input type="text" name="skladniki[0][ilosc]" class="form-control" placeholder="Ilość" required>
+                        <select name="skladniki[0][jednostka]" class="form-select" required>
+                            <option value="">Jednostka</option>
+                            <option value="sztuka">sztuka</option>
+                            <option value="g">g</option>
+                            <option value="łyżka">łyżka</option>
+                            <option value="ml">ml</option>
+                        </select>
+                        <button type="button" class="btn btn-danger remove-skladnik">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" id="dodaj-skladnik">
+                <i class="fas fa-plus"></i> Dodaj składnik
+            </button>
+        </div>
+
+        <div class="form-group">
+            <label for="instrukcje">Instrukcje przygotowania *</label>
+            <p class="text-muted mb-3">Wpisz instrukcje krok po kroku. Każdy krok powinien być w nowej linii.</p>
+            <textarea id="instrukcje" name="instrukcje" class="form-control" rows="6" required
+                placeholder="1. Rozgrzej piekarnik do 180°C&#10;2. Wymieszaj składniki..."><%= typeof przepis != 'undefined' ? przepis.instrukcje : '' %></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="zdjecie">Zdjęcie przepisu</label>
+            <input type="file" id="zdjecie" name="zdjecie" class="form-control" accept="image/*">
+            <small class="text-muted">Maksymalny rozmiar: 5MB. Dozwolone formaty: JPG, PNG, GIF</small>
+        </div>
+
+        <div class="form-group">
+            <label for="tagi">Tagi</label>
+            <p class="text-muted mb-3">Dodaj tagi oddzielone przecinkami, aby ułatwić znalezienie przepisu.</p>
+            <input type="text" id="tagi" name="tagi" class="form-control" 
+                value="<%= (typeof przepis !== 'undefined' && Array.isArray(przepis.tagi)) ? przepis.tagi.join(', ') : '' %>"
+                placeholder="np. wegetariańskie, deser, szybkie">
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> <%= typeof przepis != 'undefined' ? 'Zapisz zmiany' : 'Zapisz przepis' %>
+            </button>
+            <a href="<%= typeof przepis != 'undefined' ? `/przepisy/${przepis._id}` : '/przepisy' %>" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Anuluj
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const skladnikiContainer = document.getElementById('skladniki-container');
+    const dodajSkladnikBtn = document.getElementById('dodaj-skladnik');
+
+    function updateSkladnikIndices() {
+        const skladnikInputs = skladnikiContainer.getElementsByClassName('skladnik-input');
+        Array.from(skladnikInputs).forEach((input, index) => {
+            const inputs = input.getElementsByTagName('input');
+            const select = input.getElementsByTagName('select')[0];
+            Array.from(inputs).forEach(input => {
+                const fieldName = input.name.split(']')[1];
+                input.name = `skladniki[${index}]${fieldName}`;
+            });
+            select.name = `skladniki[${index}][jednostka]`;
+        });
+    }
+
+    // Dodawanie nowego pola składnika
+    dodajSkladnikBtn.addEventListener('click', function() {
+        const skladnikInputs = skladnikiContainer.getElementsByClassName('skladnik-input');
+        const newIndex = skladnikInputs.length;
+        
+        const newSkladnik = document.createElement('div');
+        newSkladnik.className = 'skladnik-input';
+        newSkladnik.innerHTML = `
+            <div class="input-group">
+                <input type="text" name="skladniki[${newIndex}][nazwa]" class="form-control" placeholder="Nazwa składnika" required>
+                <input type="text" name="skladniki[${newIndex}][ilosc]" class="form-control" placeholder="Ilość" required>
+                <select name="skladniki[${newIndex}][jednostka]" class="form-select" required>
+                    <option value="">Jednostka</option>
+                    <option value="sztuka">sztuka</option>
+                    <option value="g">g</option>
+                    <option value="łyżka">łyżka</option>
+                    <option value="ml">ml</option>
+                </select>
+                <button type="button" class="btn btn-danger remove-skladnik">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        `;
+        skladnikiContainer.appendChild(newSkladnik);
+        
+        // Dodaj animację
+        newSkladnik.style.opacity = '0';
+        newSkladnik.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            newSkladnik.style.transition = 'all 0.3s ease';
+            newSkladnik.style.opacity = '1';
+            newSkladnik.style.transform = 'translateY(0)';
+        }, 10);
+
+        // Aktualizuj indeksy po dodaniu nowego składnika
+        updateSkladnikIndices();
+    });
+
+    // Usuwanie pola składnika
+    skladnikiContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-skladnik') || e.target.closest('.remove-skladnik')) {
+            const skladnikInput = e.target.closest('.skladnik-input');
+            if (skladnikiContainer.children.length > 1) {
+                // Dodaj animację usuwania
+                skladnikInput.style.transition = 'all 0.3s ease';
+                skladnikInput.style.opacity = '0';
+                skladnikInput.style.transform = 'translateX(20px)';
+                
+                setTimeout(() => {
+                    skladnikInput.remove();
+                    // Aktualizuj indeksy po usunięciu składnika
+                    updateSkladnikIndices();
+                }, 300);
+            }
+        }
+    });
+
+    // Inicjalizacja indeksów przy załadowaniu strony
+    updateSkladnikIndices();
+});
+</script> 

@@ -1,0 +1,266 @@
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-info">
+            <div class="profile-avatar-icon">
+                <i class="fas fa-user fa-4x"></i>
+            </div>
+            <div class="profile-details">
+                <h1><%= user.nazwa %></h1>
+                <p class="text-muted"><i class="fas fa-envelope"></i> <%= user.email %></p>
+                <p><i class="fas fa-calendar-alt"></i> Dołączył(a): <%= new Date(user.dataRejestracji).toLocaleDateString() %></p>
+            </div>
+        </div>
+        <div class="profile-stats">
+            <div class="stat-item">
+                <span class="stat-value"><%= user.mojePrzepisy ? user.mojePrzepisy.length : 0 %></span>
+                <span class="stat-label"><i class="fas fa-book"></i> Przepisów</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value"><%= user.ulubionePrzepisy ? user.ulubionePrzepisy.length : 0 %></span>
+                <span class="stat-label"><i class="fas fa-heart"></i> Ulubionych</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value"><%= user.otrzymaneOceny || 0 %></span>
+                <span class="stat-label"><i class="fas fa-star"></i> Otrzymanych ocen</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-content">
+        <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="recipes-tab" data-bs-toggle="tab" data-bs-target="#recipes" type="button">
+                    <i class="fas fa-book"></i> Moje Przepisy
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="favorites-tab" data-bs-toggle="tab" data-bs-target="#favorites" type="button">
+                    <i class="fas fa-heart"></i> Ulubione
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button">
+                    <i class="fas fa-cog"></i> Ustawienia
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="profileTabsContent">
+            <!-- Moje Przepisy -->
+            <div class="tab-pane fade show active" id="recipes" role="tabpanel">
+                <div class="section-actions mb-4">
+                    <a href="/przepisy/nowy" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Dodaj nowy przepis
+                    </a>
+                </div>
+
+                <div class="recipes-grid">
+                    <% if(user.mojePrzepisy && user.mojePrzepisy.length > 0) { %>
+                        <% user.mojePrzepisy.forEach(function(przepis) { %>
+                            <div class="recipe-card">
+                                <% if(przepis.zdjecie) { %>
+                                    <img src="<%= przepis.zdjecie %>" alt="<%= przepis.nazwa %>" class="recipe-image">
+                                <% } else { %>
+                                    <div class="recipe-image-placeholder">
+                                        <i class="fas fa-utensils fa-3x"></i>
+                                    </div>
+                                <% } %>
+                                <div class="recipe-content">
+                                    <h3 class="recipe-title"><%= przepis.nazwa %></h3>
+                                    <div class="recipe-meta">
+                                        <span><i class="fas fa-clock"></i> <%= przepis.czasPrzygotowania %> min</span>
+                                        <span><i class="fas fa-signal"></i> <%= przepis.poziomTrudnosci %></span>
+                                        <span><i class="fas fa-star"></i> <%= przepis.srednia_ocen ? przepis.srednia_ocen.toFixed(1) : '0.0' %></span>
+                                    </div>
+                                    <div class="recipe-actions">
+                                        <a href="/przepisy/<%= przepis._id %>" class="btn btn-primary">Zobacz</a>
+                                        <a href="/przepisy/<%= przepis._id %>/edytuj" class="btn btn-secondary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="/przepisy/<%= przepis._id %>?_method=DELETE" method="POST" style="display: inline;">
+                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Czy na pewno chcesz usunąć ten przepis?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="no-content-message">
+                            <i class="fas fa-book fa-3x mb-3"></i>
+                            <h3>Nie masz jeszcze żadnych przepisów</h3>
+                            <p>Zacznij dzielić się swoimi kulinarnymi inspiracjami!</p>
+                            <a href="/przepisy/nowy" class="btn btn-primary mt-3">Dodaj pierwszy przepis</a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Ulubione -->
+            <div class="tab-pane fade" id="favorites" role="tabpanel">
+                <div class="recipes-grid">
+                    <% if(user.ulubionePrzepisy && user.ulubionePrzepisy.length > 0) { %>
+                        <% user.ulubionePrzepisy.forEach(function(przepis) { %>
+                            <div class="recipe-card">
+                                <% if(przepis.zdjecie) { %>
+                                    <img src="<%= przepis.zdjecie %>" alt="<%= przepis.nazwa %>" class="recipe-image">
+                                <% } else { %>
+                                    <div class="recipe-image-placeholder">
+                                        <i class="fas fa-utensils fa-3x"></i>
+                                    </div>
+                                <% } %>
+                                <div class="recipe-content">
+                                    <h3 class="recipe-title"><%= przepis.nazwa %></h3>
+                                    <p class="recipe-author"><i class="fas fa-user"></i> <%= przepis.autor.nazwa %></p>
+                                    <div class="recipe-meta">
+                                        <span><i class="fas fa-clock"></i> <%= przepis.czasPrzygotowania %> min</span>
+                                        <span><i class="fas fa-signal"></i> <%= przepis.poziomTrudnosci %></span>
+                                        <span><i class="fas fa-star"></i> <%= przepis.srednia_ocen ? przepis.srednia_ocen.toFixed(1) : '0.0' %></span>
+                                    </div>
+                                    <div class="recipe-actions">
+                                        <a href="/przepisy/<%= przepis._id %>" class="btn btn-primary">Zobacz</a>
+                                        <button class="btn btn-danger remove-favorite" data-recipe-id="<%= przepis._id %>">
+                                            <i class="fas fa-heart"></i> Usuń z ulubionych
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="no-content-message">
+                            <i class="fas fa-heart fa-3x mb-3"></i>
+                            <h3>Nie masz ulubionych przepisów</h3>
+                            <p>Przeglądaj przepisy i dodawaj je do ulubionych!</p>
+                            <a href="/przepisy" class="btn btn-primary mt-3">Przeglądaj przepisy</a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Ustawienia -->
+            <div class="tab-pane fade" id="settings" role="tabpanel">
+                <div class="settings-form">
+                    <form action="/users/profil" method="POST">
+                        <div class="form-group">
+                            <label for="nazwa">Nazwa użytkownika</label>
+                            <input type="text" class="form-control" id="nazwa" name="nazwa" value="<%= user.nazwa %>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="obecneHaslo">Obecne hasło</label>
+                            <input type="password" class="form-control" id="obecneHaslo" name="obecneHaslo">
+                            <small class="form-text text-muted">Wypełnij tylko jeśli chcesz zmienić hasło.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="noweHaslo">Nowe hasło</label>
+                            <input type="password" class="form-control" id="noweHaslo" name="noweHaslo">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="noweHaslo2">Potwierdź nowe hasło</label>
+                            <input type="password" class="form-control" id="noweHaslo2" name="noweHaslo2">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                            <a href="/users/logout" class="btn btn-danger" onclick="return confirm('Czy na pewno chcesz się wylogować?')">Wyloguj</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Obsługa usuwania z ulubionych
+    const removeFavoriteButtons = document.querySelectorAll('.remove-favorite');
+    removeFavoriteButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const recipeId = this.dataset.recipeId;
+            if (confirm('Czy na pewno chcesz usunąć ten przepis z ulubionych?')) {
+                try {
+                    const response = await fetch(`/users/ulubione/${recipeId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const recipeCard = this.closest('.recipe-card');
+                        recipeCard.style.transition = 'all 0.3s ease';
+                        recipeCard.style.opacity = '0';
+                        recipeCard.style.transform = 'translateX(20px)';
+                        
+                        setTimeout(() => {
+                            recipeCard.remove();
+                            
+                            // Sprawdź czy są jeszcze przepisy w ulubionych
+                            const remainingRecipes = document.querySelectorAll('#favorites .recipe-card');
+                            if (remainingRecipes.length === 0) {
+                                const favoritesTab = document.getElementById('favorites');
+                                favoritesTab.innerHTML = `
+                                    <div class="no-content-message">
+                                        <i class="fas fa-heart fa-3x mb-3"></i>
+                                        <h3>Nie masz ulubionych przepisów</h3>
+                                        <p>Przeglądaj przepisy i dodawaj je do ulubionych!</p>
+                                        <a href="/przepisy" class="btn btn-primary mt-3">Przeglądaj przepisy</a>
+                                    </div>
+                                `;
+                            }
+                            
+                            // Aktualizuj licznik ulubionych
+                            const favoritesCount = document.querySelector('.stat-item:nth-child(2) .stat-value');
+                            if (favoritesCount) {
+                                favoritesCount.textContent = parseInt(favoritesCount.textContent) - 1;
+                            }
+                        }, 300);
+                    }
+                } catch (error) {
+                    console.error('Błąd podczas usuwania z ulubionych:', error);
+                    alert('Wystąpił błąd podczas usuwania przepisu z ulubionych.');
+                }
+            }
+        });
+    });
+
+    // Walidacja formularza zmiany hasła
+    const settingsForm = document.querySelector('#settings form');
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', function(e) {
+            const noweHaslo = document.getElementById('noweHaslo').value;
+            const noweHaslo2 = document.getElementById('noweHaslo2').value;
+            const obecneHaslo = document.getElementById('obecneHaslo').value;
+            
+            if (noweHaslo || noweHaslo2) {
+                if (!obecneHaslo) {
+                    e.preventDefault();
+                    alert('Aby zmienić hasło, musisz podać obecne hasło!');
+                    return;
+                }
+                
+                if (noweHaslo !== noweHaslo2) {
+                    e.preventDefault();
+                    alert('Nowe hasła nie są identyczne!');
+                    return;
+                }
+                
+                if (noweHaslo.length < 6) {
+                    e.preventDefault();
+                    alert('Nowe hasło musi mieć co najmniej 6 znaków!');
+                    return;
+                }
+            }
+        });
+    }
+});
+</script> 

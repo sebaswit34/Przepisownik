@@ -1,0 +1,254 @@
+<div class="recipe-details">
+    <div class="recipe-header">
+        <% if(przepis.zdjecie) { %>
+            <img src="<%= przepis.zdjecie %>" alt="<%= przepis.nazwa %>" class="recipe-main-image">
+        <% } %>
+        <div class="recipe-title-section">
+            <h1><%= przepis.nazwa %></h1>
+            <div class="recipe-meta">
+                <span><i class="fas fa-user"></i> <%= przepis.autor.nazwa %></span>
+                <span><i class="fas fa-clock"></i> <%= przepis.czasPrzygotowania %> min</span>
+                <span><i class="fas fa-signal"></i> <%= przepis.poziomTrudnosci %></span>
+                <span><i class="fas fa-star"></i> <%= typeof przepis.srednia_ocen !== 'undefined' ? przepis.srednia_ocen.toFixed(1) : '0.0' %></span>
+                <span><i class="fas fa-calendar"></i> <%= new Date(przepis.dataUtworzenia).toLocaleDateString() %></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="recipe-actions mb-4">
+        <% if(user) { %>
+            <button class="btn btn-outline-primary" id="toggleFavorite" data-recipe-id="<%= przepis._id %>">
+                <i class="fas <%= (user.ulubionePrzepisy && user.ulubionePrzepisy.includes(przepis._id)) ? 'fa-heart' : 'fa-heart-o' %>"></i>
+                <span><%= (user.ulubionePrzepisy && user.ulubionePrzepisy.includes(przepis._id)) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych' %></span>
+            </button>
+            <% if(przepis.autor._id.equals(user._id)) { %>
+                <a href="/przepisy/<%= przepis._id %>/edytuj" class="btn btn-secondary">
+                    <i class="fas fa-edit"></i> Edytuj
+                </a>
+                <form action="/przepisy/<%= przepis._id %>?_method=DELETE" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Czy na pewno chcesz usunąć ten przepis?')">
+                        <i class="fas fa-trash"></i> Usuń
+                    </button>
+                </form>
+            <% } %>
+        <% } %>
+    </div>
+
+    <div class="recipe-content">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="ingredients-section">
+                    <h2>Składniki</h2>
+                    <ul class="ingredients-list">
+                        <% przepis.skladniki.forEach(function(skladnik) { %>
+                            <li>
+                                <span class="ingredient-item"><%= skladnik.nazwa %> - <%= skladnik.ilosc %> <%= skladnik.jednostka %></span>
+                            </li>
+                        <% }); %>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="instructions-section">
+                    <h2>Instrukcje przygotowania</h2>
+                    <div class="instructions-content">
+                        <ol class="instructions-list">
+                            <% przepis.instrukcje.split('\n').filter(instrukcja => instrukcja.trim()).forEach(function(instrukcja, index) { %>
+                                <li><%= instrukcja.trim() %></li>
+                            <% }); %>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <% if(przepis.tagi && przepis.tagi.length > 0) { %>
+        <div class="recipe-tags mt-4">
+            <h3>Tagi</h3>
+            <div class="tags-container">
+                <% przepis.tagi.forEach(function(tag) { %>
+                    <a href="/przepisy?tag=<%= tag %>" class="badge bg-secondary"><%= tag %></a>
+                <% }); %>
+            </div>
+        </div>
+    <% } %>
+
+    <div class="ratings-section mt-4">
+        <h3>Oceny i komentarze</h3>
+        <% if(user) { %>
+            <div class="rating-form mb-4">
+                <form action="/przepisy/<%= przepis._id %>/oceny" method="POST" id="ratingForm">
+                    <div class="form-group">
+                        <label>Twoja ocena:</label>
+                        <div class="rating-stars">
+                            <% for(let i = 5; i >= 1; i--) { %>
+                                <input type="radio" id="star<%= i %>" name="ocena" value="<%= i %>" required
+                                    <%= (user && user.oceny && user.oceny.find(o => o.przepis && o.przepis.equals(przepis._id))?.ocena === i) ? 'checked' : '' %>>
+                                <label for="star<%= i %>"><i class="fas fa-star"></i></label>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="komentarz">Twój komentarz (opcjonalnie):</label>
+                        <textarea class="form-control" id="komentarz" name="komentarz" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submitRating">Dodaj ocenę</button>
+                </form>
+            </div>
+
+            <script>
+            document.getElementById('ratingForm').addEventListener('submit', function(e) {
+                const selectedRating = document.querySelector('input[name="ocena"]:checked');
+                if (!selectedRating) {
+                    e.preventDefault();
+                    alert('Proszę wybrać ocenę przed wysłaniem formularza.');
+                    return false;
+                }
+                console.log('Wysyłanie oceny:', selectedRating.value);
+            });
+            </script>
+        <% } else { %>
+            <div class="alert alert-info">
+                <a href="/users/login">Zaloguj się</a>, aby dodać ocenę i komentarz.
+            </div>
+        <% } %>
+
+        <div class="comments-section">
+            <% if(przepis.komentarze && przepis.komentarze.length > 0) { %>
+                <% przepis.komentarze.sort((a, b) => new Date(b.dataUtworzenia) - new Date(a.dataUtworzenia)).forEach(function(komentarz) { %>
+                    <div class="comment-card" id="komentarz-<%= komentarz._id %>">
+                        <div class="comment-header">
+                            <img src="<%= komentarz.autor.avatar || '/images/default-avatar.png' %>" 
+                                alt="<%= komentarz.autor.nazwa %>" class="comment-avatar">
+                            <div class="comment-meta">
+                                <strong><%= komentarz.autor.nazwa %></strong>
+                                <div class="rating-display">
+                                    <% if (komentarz.ocena) { %>
+                                        <% for(let i = 1; i <= komentarz.ocena; i++) { %>
+                                            <i class="fas fa-star active"></i>
+                                        <% } %>
+                                        <% for(let i = komentarz.ocena + 1; i <= 5; i++) { %>
+                                            <i class="far fa-star"></i>
+                                        <% } %>
+                                    <% } %>
+                                </div>
+                                <small><%= new Date(komentarz.dataUtworzenia).toLocaleDateString() %></small>
+                                <% if(user && komentarz.autor._id.equals(user._id)) { %>
+                                    <button class="btn btn-sm btn-danger delete-comment" 
+                                            data-przepis-id="<%= przepis._id %>"
+                                            data-komentarz-id="<%= komentarz._id %>">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="comment-content">
+                            <%= komentarz.tresc %>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p class="text-muted">Brak komentarzy. Bądź pierwszy!</p>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleFavoriteBtn = document.getElementById('toggleFavorite');
+    if (toggleFavoriteBtn) {
+        toggleFavoriteBtn.addEventListener('click', function() {
+            const recipeId = this.dataset.recipeId;
+            fetch(`/przepisy/${recipeId}/ulubione`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const icon = this.querySelector('i');
+                const text = this.querySelector('span');
+                if (data.isFavorite) {
+                    icon.classList.remove('fa-heart-o');
+                    icon.classList.add('fa-heart');
+                    text.textContent = 'Usuń z ulubionych';
+                } else {
+                    icon.classList.remove('fa-heart');
+                    icon.classList.add('fa-heart-o');
+                    text.textContent = 'Dodaj do ulubionych';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    }
+});
+
+// Obsługa usuwania komentarzy
+document.querySelectorAll('.delete-comment').forEach(button => {
+    button.addEventListener('click', async function() {
+        if (!confirm('Czy na pewno chcesz usunąć ten komentarz?')) {
+            return;
+        }
+
+        const przepisId = this.dataset.przepisId;
+        const komentarzId = this.dataset.komentarzId;
+        const komentarzElement = document.getElementById(`komentarz-${komentarzId}`);
+
+        try {
+            const response = await fetch(`/przepisy/${przepisId}/komentarze/${komentarzId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Usuń komentarz z DOM
+                komentarzElement.remove();
+                
+                // Aktualizuj wyświetlaną średnią ocen i liczbę ocen
+                const sredniaElement = document.querySelector('.recipe-meta span:has(.fa-star)');
+                if (sredniaElement) {
+                    sredniaElement.innerHTML = `<i class="fas fa-star"></i> ${data.sredniaOcen.toFixed(1)} (${data.liczbaOcen} ocen)`;
+                }
+
+                // Jeśli nie ma już komentarzy, wyświetl komunikat
+                const commentsSection = document.querySelector('.comments-section');
+                if (commentsSection && !commentsSection.querySelector('.comment-card')) {
+                    commentsSection.innerHTML = '<p class="text-muted">Brak komentarzy. Bądź pierwszy!</p>';
+                }
+            } else {
+                alert(data.error || 'Wystąpił błąd podczas usuwania komentarza');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Wystąpił błąd podczas usuwania komentarza');
+        }
+    });
+});
+</script>
+
+<style>
+.delete-comment {
+    padding: 0.25rem 0.5rem;
+    margin-left: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.delete-comment:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+</style> 

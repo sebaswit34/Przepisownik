@@ -1,0 +1,106 @@
+<div class="main-content">
+    <div class="section-header">
+        <h1>Przepisy Kulinarne</h1>
+    </div>
+
+    <div class="search-filters mb-4">
+        <form action="/przepisy" method="GET" class="row g-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Szukaj przepisów..." value="<%= typeof search != 'undefined' ? search : '' %>">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="difficulty" id="difficulty" class="form-select">
+                    <option value="">Wszystkie</option>
+                    <option value="Łatwy" <%= difficulty === 'Łatwy' ? 'selected' : '' %>>Łatwy</option>
+                    <option value="Średni" <%= difficulty === 'Średni' ? 'selected' : '' %>>Średni</option>
+                    <option value="Trudny" <%= difficulty === 'Trudny' ? 'selected' : '' %>>Trudny</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="sort" class="form-select">
+                    <option value="newest" <%= sort === 'newest' ? 'selected' : '' %>>Najnowsze</option>
+                    <option value="popular" <%= sort === 'popular' ? 'selected' : '' %>>Najpopularniejsze</option>
+                    <option value="rating" <%= sort === 'rating' ? 'selected' : '' %>>Najwyżej oceniane</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <div class="recipes-grid">
+        <% if(przepisy.length > 0) { %>
+            <% przepisy.forEach(function(przepis) { %>
+                <div class="recipe-card">
+                    <% if(przepis.zdjecie) { %>
+                        <img src="<%= przepis.zdjecie %>" alt="<%= przepis.nazwa %>" class="recipe-image">
+                    <% } else { %>
+                        <div class="recipe-image-placeholder">
+                            <i class="fas fa-utensils fa-3x"></i>
+                        </div>
+                    <% } %>
+                    <div class="recipe-content">
+                        <h2 class="recipe-title"><%= przepis.nazwa %></h2>
+                        <div class="recipe-meta">
+                            <span><i class="fas fa-clock"></i> <%= przepis.czasPrzygotowania %> min</span>
+                            <span><i class="fas fa-signal"></i> <%= przepis.poziomTrudnosci %></span>
+                            <span><i class="fas fa-star"></i> <%= typeof przepis.srednia_ocen !== 'undefined' ? przepis.srednia_ocen.toFixed(1) : '0.0' %></span>
+                        </div>
+                        <p class="recipe-author">Autor: <%= przepis.autor.nazwa %></p>
+                        <div class="recipe-actions">
+                            <a href="/przepisy/<%= przepis._id %>" class="btn btn-primary">Zobacz przepis</a>
+                            <% if(user && przepis.autor._id.equals(user._id)) { %>
+                                <a href="/przepisy/<%= przepis._id %>/edytuj" class="btn btn-secondary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="/przepisy/<%= przepis._id %>?_method=DELETE" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Czy na pewno chcesz usunąć ten przepis?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <div class="no-recipes">
+                <i class="fas fa-search fa-3x mb-3"></i>
+                <h3>Nie znaleziono przepisów</h3>
+                <p>Spróbuj zmienić kryteria wyszukiwania lub dodaj nowy przepis.</p>
+                <a href="/przepisy/nowy" class="btn btn-primary mt-3">Dodaj przepis</a>
+            </div>
+        <% } %>
+    </div>
+
+    <% if (totalPages > 1) { %>
+        <nav aria-label="Nawigacja stron" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <% if (currentPage > 1) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="/przepisy?page=<%= currentPage - 1 %><%= searchParams %>" aria-label="Poprzednia">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                <% } %>
+                
+                <% for(let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= currentPage == i ? 'active' : '' %>">
+                        <a class="page-link" href="/przepisy?page=<%= i %><%= searchParams %>"><%= i %></a>
+                    </li>
+                <% } %>
+                
+                <% if (currentPage < totalPages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="/przepisy?page=<%= currentPage + 1 %><%= searchParams %>" aria-label="Następna">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    <% } %>
+</div> 
