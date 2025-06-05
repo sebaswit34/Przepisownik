@@ -90,7 +90,7 @@ przepisownik/
 ├── middleware/      # Middleware aplikacji
 └── app.js          # Główny plik aplikacji
 ```
-### W pliku znajduja się zdjęcia, które były mi potrzebne do testów aplikacji.
+### W pliku uploads znajduja się zdjęcia, które były mi potrzebne do testów aplikacji.
 
 ### Opis Komponentów
 - **Kontrolery** - zawierają logikę biznesową aplikacji, obsługują żądania i odpowiedzi
