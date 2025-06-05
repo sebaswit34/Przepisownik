@@ -23,7 +23,7 @@ app.use(methodOverride('_method'));
 
 // Konfiguracja sesji
 app.use(session({
-    secret: 'tajny_klucz_sesji_zmien_w_produkcji',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false
 }));
@@ -36,7 +36,7 @@ const { zmienneGlobalne } = require('./middleware/auth');
 app.use(zmienneGlobalne);
 
 // Połączenie z bazą danych
-mongoose.connect('mongodb+srv://sebaswit46:Pilkareczna17@cluster0.wkiftrn.mongodb.net/przepisy', {
+mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
